@@ -124,6 +124,7 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
                     coverHideAnimation.duration = animationDuration
                     coverLayer.addAnimation(coverHideAnimation, forKey: "coverHideAnimation")
                     CATransaction.commit()
+                    self.touchPoint = nil
                 } else {
                     coverLayer.path = UIBezierPath(ovalInRect: CGRectZero).CGPath
                 }
