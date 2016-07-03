@@ -66,7 +66,6 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
                     CATransaction.begin()
                     CATransaction.setCompletionBlock({ [unowned self] in
                         self.coverLayer.path = toPath
-                        self.imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1)
                     })
                     coverAnimation.fromValue = fromPath
                     coverAnimation.toValue = toPath
@@ -80,12 +79,31 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
                         }, completion: nil)
                     self.touchPoint = nil
                 } else {
-                    coverLayer.path = UIBezierPath(rect: bounds).CGPath
+                    let midX = bounds.width / 2
+                    let midY = bounds.height / 2
+                    let radius = bounds.width + bounds.height
+                    // this path must be circular otherwise the hide animation will look weird
+                    coverLayer.path = UIBezierPath(ovalInRect: CGRect(x: midX - radius, y: midY - radius, width: 2 * radius, height: 2 * radius)).CGPath
                     imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1)
                 }
             } else {
-                coverLayer.path = UIBezierPath(ovalInRect: CGRectZero).CGPath
-                imageView.transform = CGAffineTransformIdentity
+                if let touchPoint = touchPoint {
+                    let toPath = UIBezierPath(ovalInRect: CGRect(x: touchPoint.x, y: touchPoint.y, width: 0, height: 0)).CGPath
+                    let coverHideAnimation = CABasicAnimation(keyPath: "path")
+                    CATransaction.begin()
+                    CATransaction.setCompletionBlock({ 
+                        self.coverLayer.path = UIBezierPath(ovalInRect: CGRectZero).CGPath
+                    })
+                    coverHideAnimation.toValue = toPath
+                    coverHideAnimation.duration = animationDuration
+                    coverLayer.addAnimation(coverHideAnimation, forKey: "coverHideAnimation")
+                    CATransaction.commit()
+                } else {
+                    coverLayer.path = UIBezierPath(ovalInRect: CGRectZero).CGPath
+                }
+                UIView.animateWithDuration(animationDuration, animations: { [unowned self] in
+                    self.imageView.transform = CGAffineTransformIdentity
+                })
             }
         }
     }
