@@ -10,11 +10,22 @@ import UIKit
 
 @IBDesignable
 class InteractiveCollectionViewCell: UICollectionViewCell {
-    var coverLayer: CAShapeLayer = CAShapeLayer()
     
+    /**
+     The color of the overlay that covers the cell when it is selected.  Defaults to white
+    */
     @IBInspectable
     var coverColor: UIColor = UIColor.whiteColor()
     
+    /**
+     The alpha of the overlay that covers the cell when it is selected.  Defaults to 0.3
+    */
+    @IBInspectable
+    var coverAlpha: CGFloat = 0.3
+    
+    /**
+     The image shown within the collection view cell
+    */
     @IBInspectable
     var image: UIImage? {
         didSet {
@@ -23,11 +34,25 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    /**
+     The duration of the selected/unselected animations.  Defaults to 0.5
+    */
     @IBInspectable
     var animationDuration: CFTimeInterval = 0.5
-
+    
+    /**
+     The amount to scale the image when it is selected.  Defaults to 1.1
+    */
+    @IBInspectable
+    var selectedImageScale: CGFloat = 1.1
+    
+    private var coverLayer: CAShapeLayer = CAShapeLayer()
     private var touchPoint: CGPoint? = nil
     private var imageView: UIImageView = UIImageView()
+    
+    private var selectedImageTransform: CGAffineTransform {
+        return CGAffineTransformScale(CGAffineTransformIdentity, selectedImageScale, selectedImageScale)
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -42,7 +67,7 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
     func commonInit() {
         layer.addSublayer(coverLayer)
         coverLayer.path = UIBezierPath(ovalInRect: CGRectZero).CGPath
-        coverLayer.fillColor = coverColor.colorWithAlphaComponent(0.3).CGColor
+        coverLayer.fillColor = coverColor.colorWithAlphaComponent(coverAlpha).CGColor
         coverLayer.frame = bounds
         
         imageView.contentMode = .ScaleAspectFill
@@ -75,7 +100,7 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
                     CATransaction.commit()
                     
                     UIView.animateWithDuration(animationDuration, animations: { [unowned self] in
-                        self.imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1)
+                        self.imageView.transform = self.selectedImageTransform
                         }, completion: nil)
                     self.touchPoint = nil
                 } else {
@@ -85,7 +110,7 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
                     let radius = bounds.width + bounds.height
                     // this path must be circular otherwise the hide animation will look weird
                     coverLayer.path = UIBezierPath(ovalInRect: CGRect(x: midX - radius, y: midY - radius, width: 2 * radius, height: 2 * radius)).CGPath
-                    imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1.1, 1.1)
+                    imageView.transform = selectedImageTransform
                 }
             } else {
                 if let touchPoint = touchPoint {
@@ -116,6 +141,9 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         super.touchesBegan(touches, withEvent: event)
+        // Saves the touch point so we know where to animation in selected.
+        // The animation cannot happen here because just because the cell is tapped
+        // doesn't mean it's actually selected by the collection view.
         if touches.count > 0 {
             touchPoint = touches.first?.locationInView(self)
         }
