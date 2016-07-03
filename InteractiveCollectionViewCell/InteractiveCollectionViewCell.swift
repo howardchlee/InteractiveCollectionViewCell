@@ -13,7 +13,7 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
     var coverLayer: CAShapeLayer = CAShapeLayer()
     
     @IBInspectable
-    var coverColor: UIColor = UIColor.greenColor()
+    var coverColor: UIColor = UIColor.whiteColor()
     
     @IBInspectable
     var image: UIImage? {
@@ -79,6 +79,7 @@ class InteractiveCollectionViewCell: UICollectionViewCell {
                         }, completion: nil)
                     self.touchPoint = nil
                 } else {
+                    // this is called when a selected cell is shown again after it has been scrolled out
                     let midX = bounds.width / 2
                     let midY = bounds.height / 2
                     let radius = bounds.width + bounds.height
